@@ -1,0 +1,44 @@
+#!/usr/bin/expect
+
+set timeout 20
+
+set q_continue [lindex $argv 0]
+
+set bin_apache [lindex $argv 1]
+
+set teste [lindex $argv 2]
+
+#spawn ssh "$user\@$ip"
+spawn "./setup_gestioip.sh"
+
+expect "Do you wish to continue"
+send "$q_continue\r";
+
+expect "Where is Apache daemon binary"
+send "$bin_apache\r";
+
+expect "Where is Apache main configuration file"
+send "/etc/httpd/conf/httpd.conf\r";
+
+expect "Which user account is running Apache web server"
+send "apache\r";
+
+expect "Which user group is running Apache web server"
+send "apache\r";
+
+expect "Where is Apache Include configuration directory"
+send "/etc/httpd/conf.d/\r";
+
+expect "Where is PERL Intrepreter binary"
+send "/usr/bin/perl\r"
+
+expect "Do you plan to import networks or hosts from spreadsheets"
+send "n\r";
+
+expect "Do you wish that Setup installs the missing Perl Modules now"
+send "y\r";
+
+expect "Where is MAKE binary"
+send "/usr/bin/make\r";
+
+interact
