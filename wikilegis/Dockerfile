@@ -22,16 +22,18 @@ RUN pip install -r /var/local/wikilegis/requirements.txt
 
 ### Configurar proxy reverso
 ADD r_proxy.conf /etc/httpd/conf.d/
-
-RUN cd /var/local/wikilegis && \
-	./manage.py migrate && \
-	./manage.py createsuperuser
-
-
-RUN /var/local/wikilegis/manage.py runserver &
-
-ENTRYPOINT ["/usr/sbin/httpd"]
-
+RUN systemctl enable httpd
 EXPOSE 80
+
+ADD configure_wikilegis.sh /configure_wikilegis.sh
+RUN chmod -v +x /configure_wikilegis.sh
+CMD ["/configure_wikilegis.sh"]
+
+
+# Simple startup script to avoid some issues observed with container restart
+ADD run-apache.sh /run-apache.sh
+RUN chmod -v +x /run-apache.sh
+
+CMD ["/run-apache.sh"]
 
 
