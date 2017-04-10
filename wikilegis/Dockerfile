@@ -1,39 +1,21 @@
-FROM centos:centos7
+# our base image
+FROM alpine:3.5
 
-####### Disable SELinux
-#RUN cat /etc/selinux/config
+# Install python and pip
+RUN apk add --update py2-pip git gcc make  build-base python-dev jpeg-dev zlib-dev
+ENV LIBRARY_PATH=/lib:/usr/lib
 
-RUN yum -y install zlib-devel.x86_64 libjpeg-turbo-devel.x86_64 \
-	git gcc \
-	httpd httpd-tools mod_proxy_html.x86_64
- 
-RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-9.noarch.rpm
-#RUN yum repolist
-RUN yum -y install python-pillow.x86_64 python2-pip.noarch python-devel.x86_64
-RUN yum clean all
+RUN git clone https://github.com/labhackercd/wikilegis.git /usr/local/wikilegis
 
-#RUN cd /var/local && \
-#	git clone https://github.com/labhackercd/wikilegis.git && \
-#	cd wikilegis && ls -lha
+# install Python modules needed by the Python app
+RUN pip install --no-cache-dir -r /usr/local/wikilegis/requirements.txt
 
-RUN git clone https://github.com/labhackercd/wikilegis.git /var/local/wikilegis
+RUN /usr/local/wikilegis/manage.py migrate
+RUN /usr/local/wikilegis/manage.py createsuperuser
 
-RUN pip install -r /var/local/wikilegis/requirements.txt
+# tell the port number the container should expose
+EXPOSE 8080
 
-### Configurar proxy reverso
-ADD r_proxy.conf /etc/httpd/conf.d/
-RUN systemctl enable httpd
-EXPOSE 80
-
-ADD configure_wikilegis.sh /configure_wikilegis.sh
-RUN chmod -v +x /configure_wikilegis.sh
-CMD ["/configure_wikilegis.sh"]
-
-
-# Simple startup script to avoid some issues observed with container restart
-ADD run-apache.sh /run-apache.sh
-RUN chmod -v +x /run-apache.sh
-
-CMD ["/run-apache.sh"]
-
+# run the application
+CMD ["python", "/usr/local/wikilegis/manage.py", "runserver", "0.0.0.0:8080"]
 
